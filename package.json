@@ -59,8 +59,12 @@
   "dependencies": {
     "@coral-xyz/borsh": "^0.31.1",
     "@solana/buffer-layout": "^4.0.1",
-    "@solana/web3.js": "^1.98.2",
     "bn.js": "^5.2.2",
+    "bs58": "^6.0.0",
     "js-sha256": "^0.11.0"
+  },
+  "peerDependencies": {
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2"
   }
 }
