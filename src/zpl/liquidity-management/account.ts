@@ -1,10 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import {
-  createDeserializer,
-  createDiscriminatorFilter,
-  getDeserializedAccounts,
-} from "../utils";
+import { createDiscriminatorFilter, getDeserializedAccounts } from "../utils";
 import { Position, PositionSchema } from "./types";
 
 class LiquidityManagementAccounts {
@@ -28,7 +24,7 @@ class LiquidityManagementAccounts {
       this.connection,
       this.programId,
       filters,
-      createDeserializer(PositionSchema)
+      PositionSchema
     );
 
     return positions;

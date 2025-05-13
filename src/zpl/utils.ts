@@ -11,9 +11,7 @@ const DISCRIMINATOR_SIZE = 8;
 
 type Deserializer<T> = (pubkey: PublicKey, data: Buffer) => T;
 
-export const createDeserializer = <T>(
-  schema: Structure<T>
-): Deserializer<T> => {
+const createDeserializer = <T>(schema: Structure<T>): Deserializer<T> => {
   return (publicKey: PublicKey, data: Buffer): T => {
     const decoded = schema.decode(data);
 
@@ -44,9 +42,10 @@ export const getDeserializedAccounts = async <T>(
   connection: Connection,
   programId: PublicKey,
   filters: GetProgramAccountsFilter[],
-  deserializer: Deserializer<T>
+  accountSchema: Structure<T>
 ): Promise<T[]> => {
   const accounts = await connection.getProgramAccounts(programId, { filters });
+  const deserializer = createDeserializer(accountSchema);
 
   return accounts.map((account) => {
     const { data } = account.account;

@@ -1,11 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 
-import {
-  createDeserializer,
-  createDiscriminatorFilter,
-  getDeserializedAccounts,
-} from "../utils";
+import { createDiscriminatorFilter, getDeserializedAccounts } from "../utils";
 import {
   ColdReserveBucket,
   ColdReserveBucketSchema,
@@ -28,7 +24,7 @@ class TwoWayPegAccounts {
       this.connection,
       this.programId,
       filters,
-      createDeserializer(TwoWayPegConfigurationSchema)
+      TwoWayPegConfigurationSchema
     );
 
     return twoWayPegConfigurations[0];
@@ -43,7 +39,7 @@ class TwoWayPegAccounts {
       this.connection,
       this.programId,
       filters,
-      createDeserializer(ColdReserveBucketSchema)
+      ColdReserveBucketSchema
     );
 
     return coldReserveBuckets;
@@ -66,7 +62,7 @@ class TwoWayPegAccounts {
       this.connection,
       this.programId,
       filters,
-      createDeserializer(HotReserveBucketSchema)
+      HotReserveBucketSchema
     );
 
     return hotReserveBuckets;
@@ -89,7 +85,7 @@ class TwoWayPegAccounts {
       this.connection,
       this.programId,
       filters,
-      createDeserializer(HotReserveBucketSchema)
+      HotReserveBucketSchema
     );
 
     return hotReserveBuckets;
