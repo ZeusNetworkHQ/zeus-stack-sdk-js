@@ -17,7 +17,7 @@ class TwoWayPegAccounts {
     private programId: PublicKey
   ) {}
 
-  async getTwoWayPegConfiguration(): Promise<TwoWayPegConfiguration> {
+  async getConfiguration(): Promise<TwoWayPegConfiguration> {
     const filters = [createDiscriminatorFilter("two-way-peg:configuration")];
 
     const twoWayPegConfigurations = await getDeserializedAccounts(

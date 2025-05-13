@@ -26,7 +26,7 @@ const client = new TwoWayPegClient(connection, programId);
 
 ```ts
 // Fetch the two-way-peg configuration account
-const twoWayPegConfig = await client.accounts.getTwoWayPegConfiguration();
+const twoWayPegConfig = await client.accounts.getConfiguration();
 console.log(twoWayPegConfig.layerFeeCollector.toString());
 ```
 
