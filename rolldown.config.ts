@@ -1,5 +1,7 @@
 import { defineConfig } from "rolldown";
 
+import pkg from "./package.json" assert { type: "json" };
+
 export default defineConfig({
   input: "src/index.ts",
   output: [
@@ -15,5 +17,9 @@ export default defineConfig({
       entryFileNames: "[name].cjs",
       sourcemap: true,
     },
+  ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
   ],
 });
