@@ -13,6 +13,8 @@ A ZPL (zeus-program-library) SDK for Node.js and browser environments, built wit
 pnpm add zpl-sdk-js
 ```
 
+### Client Example
+
 ```ts
 import { TwoWayPegClient } from "zpl-sdk-js";
 
@@ -20,13 +22,11 @@ import { TwoWayPegClient } from "zpl-sdk-js";
 const client = new TwoWayPegClient(connection, programId);
 ```
 
-### Two-Way-Peg Examples
-
 #### Account
 
 ```ts
 // Fetch the two-way-peg configuration account
-const twoWayPegConfig = await client.accounts.getTwoWayPegConfiguration();
+const twoWayPegConfig = await client.accounts.getConfiguration();
 console.log(twoWayPegConfig.layerFeeCollector.toString());
 ```
 
@@ -47,7 +47,6 @@ const withdrawalIx = client.instructions.buildAddWithdrawalRequestIx(
   positionPda
 );
 
-// Add to transaction
 const tx = new Transaction().add(withdrawalIx);
 ```
 
@@ -64,12 +63,77 @@ const interactionPda = client.pdas.deriveInteraction(
 console.log(`Interaction PDA: ${interactionPda.toString()}`);
 ```
 
-## Build
+### Flow Example
 
-```sh
-pnpm build
+#### Create Hot Reserve Bucket
+
+```ts
+import { TwoWayPegClient } from "zpl-sdk-js";
+import { deriveHotReserveAddress } from "zpl-sdk-js/bitcoin";
+
+const client = new TwoWayPegClient(connection, programId);
+
+const { pubkey: hotReserveBitcoinXOnlyPublicKey } = deriveHotReserveAddress(
+  guardianXOnlyPublicKey,
+  userBitcoinXOnlyPublicKey,
+  UNLOCK_BLOCK_HEIGHT,
+  bitcoinNetwork
+);
+
+const twoWayPegConfiguration = await client.accounts.getConfiguration();
+
+const ix = client.instructions.buildCreateHotReserveBucketIx(
+  UNLOCK_BLOCK_HEIGHT,
+  HOT_RESERVE_BUCKET_VALIDITY_PERIOD,
+  solanaPubkey,
+  userBitcoinXOnlyPublicKey,
+  hotReserveBitcoinXOnlyPublicKey,
+  new PublicKey(selectedGuardian.address),
+  new PublicKey(selectedGuardian.guardian_certificate),
+  coldReserveBucket.publicKey,
+  twoWayPegConfiguration.layerFeeCollector
+);
+
+const tx = new Transaction().add(ix);
 ```
 
----
+#### Deposit
 
-Built with [rolldown](https://github.com/rolldown/rolldown).
+```ts
+import { TwoWayPegClient } from "zpl-sdk-js";
+import { buildDepositToHotReserveTx } from "zpl-sdk-js/bitcoin";
+
+const client = new TwoWayPegClient(connection, programId);
+
+const hotReserveBuckets =
+  await client.getHotReserveBucketsByBitcoinXOnlyPubkey(userXOnlyPublicKey);
+
+// NOTE: selection logic depends on your DApp logic
+const targetHotReserveBucket = hotReserveBuckets[0];
+
+const { address: targetHotReserveAddress } = bitcoin.payments.p2tr({
+  pubkey: Buffer.from(targetHotReserveBucket.taprootXOnlyPublicKey),
+  network: bitcoinNetwork,
+});
+
+const { psbt, usedUTXOs } = buildDepositToHotReserveTx(
+  bitcoinUTXOs,
+  targetHotReserveAddress,
+  depositAmount,
+  userXOnlyPublicKey,
+  feeRate,
+  bitcoinNetwork
+);
+```
+
+##### Signing and Broadcasting
+
+After constructing the deposit PSBT as shown above, complete the deposit flow with the following steps:
+
+1. **Sign the PSBT:**
+   Use your Bitcoin wallet (such as Ledger, Sparrow, or any compatible wallet software) to sign the generated PSBT. The signing process proves ownership of the inputs and authorizes the spend.
+
+2. **Broadcast the Transaction:**
+   Once the PSBT is fully signed, broadcast the finalized transaction to the Bitcoin network. You can use your wallet, a Bitcoin node, or a third-party API/service to submit the raw transaction hex.
+
+> Note: The SDK does not handle signing or broadcasting. You must use your own wallet infrastructure or integrate with external services for these steps.
