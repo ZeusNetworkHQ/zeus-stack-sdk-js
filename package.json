@@ -1,6 +1,6 @@
 {
-  "name": "zpl-sdk-js",
-  "version": "0.1.0",
+  "name": "@zeus-network/zpl-sdk",
+  "version": "0.11.1",
   "description": "",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -10,6 +10,21 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
+    },
+    "./two-way-peg/types": {
+      "import": "./dist/zpl/two-way-peg/types.mjs",
+      "require": "./dist/zpl/two-way-peg/types.cjs",
+      "types": "./dist/zpl/two-way-peg/types.d.ts"
+    },
+    "./liquidity-management/types": {
+      "import": "./dist/zpl/liquidity-management/types.mjs",
+      "require": "./dist/zpl/liquidity-management/types.cjs",
+      "types": "./dist/zpl/liquidity-management/types.d.ts"
+    },
+    "./bitcoin": {
+      "import": "./dist/bitcoin/index.mjs",
+      "require": "./dist/bitcoin/index.cjs",
+      "types": "./dist/bitcoin/index.d.ts"
     }
   },
   "files": [
@@ -36,13 +51,14 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.8.1",
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@eslint/js": "^9.26.0",
     "@types/bn.js": "^5.1.6",
+    "@types/bs58": "^4.0.4",
     "@types/node": "^22.14.1",
     "cspell": "^9.0.0",
     "eslint": "^9.26.0",
@@ -57,10 +73,17 @@
     "typescript-eslint": "^8.32.0"
   },
   "dependencies": {
+    "@bitcoinerlab/secp256k1": "^1.2.0",
     "@coral-xyz/borsh": "^0.31.1",
     "@solana/buffer-layout": "^4.0.1",
-    "@solana/web3.js": "^1.98.2",
+    "bitcoinjs-lib": "^6.1.7",
     "bn.js": "^5.2.2",
-    "js-sha256": "^0.11.0"
+    "bs58": "^5.0.0",
+    "js-sha256": "^0.11.0",
+    "uint8array-tools": "^0.0.9"
+  },
+  "peerDependencies": {
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2"
   }
 }

@@ -5,7 +5,25 @@
   // language - current active spelling language
   "language": "en",
   // words - list of words to be always considered correct
-  "words": ["rolldown", "solana"],
+  "words": [
+    "borsh",
+    "rolldown",
+    "solana",
+    "chadbuffer",
+    "pdas",
+    "bitcoinjs",
+    "bitcoinerlab",
+    "CHECKSEQUENCEVERIFY",
+    "CHECKSIG",
+    "utxo",
+    "stxo",
+    "utxos",
+    "satoshis",
+    "vbyte",
+    "psbt",
+    "xonly",
+    "unreleasable"
+  ],
   // flagWords - list of words to be always considered incorrect
   // This is useful for offensive words and common spelling errors.
   "flagWords": []
