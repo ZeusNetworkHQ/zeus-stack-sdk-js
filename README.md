@@ -1,4 +1,4 @@
-# zpl-sdk-js
+# ZPL SDK
 
 A ZPL (zeus-program-library) SDK for Node.js and browser environments, built with rolldown.
 
@@ -10,13 +10,13 @@ A ZPL (zeus-program-library) SDK for Node.js and browser environments, built wit
 ## Usage
 
 ```sh
-pnpm add zpl-sdk-js
+pnpm add @zeus-network/zpl-sdk
 ```
 
 ### Client Example
 
 ```ts
-import { TwoWayPegClient } from "zpl-sdk-js";
+import { TwoWayPegClient } from "@zeus-network/zpl-sdk";
 
 // Initialize client
 const client = new TwoWayPegClient(connection, programId);
@@ -68,8 +68,8 @@ console.log(`Interaction PDA: ${interactionPda.toString()}`);
 #### Create Hot Reserve Bucket
 
 ```ts
-import { TwoWayPegClient } from "zpl-sdk-js";
-import { deriveHotReserveAddress } from "zpl-sdk-js/bitcoin";
+import { TwoWayPegClient } from "@zeus-network/zpl-sdk";
+import { deriveHotReserveAddress } from "@zeus-network/zpl-sdk/bitcoin";
 
 const client = new TwoWayPegClient(connection, programId);
 
@@ -100,8 +100,8 @@ const tx = new Transaction().add(ix);
 #### Deposit
 
 ```ts
-import { TwoWayPegClient } from "zpl-sdk-js";
-import { buildDepositToHotReserveTx } from "zpl-sdk-js/bitcoin";
+import { TwoWayPegClient } from "@zeus-network/zpl-sdk";
+import { buildDepositToHotReserveTx } from "@zeus-network/zpl-sdk/bitcoin";
 
 const client = new TwoWayPegClient(connection, programId);
 
