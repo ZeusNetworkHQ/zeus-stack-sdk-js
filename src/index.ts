@@ -1,4 +1,6 @@
 export {
+  extractErrorCodeFromSendTransactionError,
+  extractProgramIdFromSendTransactionError,
   getDeserializedAccounts,
   LiquidityManagementClient,
   LiquidityManagementError,
