@@ -1,6 +1,6 @@
 {
-  "name": "zpl-sdk-js",
-  "version": "0.1.0",
+  "name": "@zeus-network/zpl-sdk-js",
+  "version": "0.0.1",
   "description": "",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
