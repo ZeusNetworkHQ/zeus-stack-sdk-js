@@ -154,4 +154,38 @@ export const AddWithdrawalRequestSchema: Structure<AddWithdrawalRequest> =
     borsh.u64("withdrawalAmount"),
   ]);
 
+export interface AddWithdrawalRequestWithAddressType {
+  discriminator: number;
+  receiverAddress: Uint8Array;
+  receiverAddressType: number;
+  currentSlot: BN;
+  withdrawalAmount: BN;
+}
+
+export enum BitcoinAddressType {
+  /// Pay-to-Taproot (P2TR) address type (`SegWit` version 1).
+  P2tr = 0,
+
+  /// Pay-to-Witness-PubKey-Hash (P2WPKH) address type (`SegWit`).
+  P2wpkh = 1,
+
+  /// Pay-to-Witness-Script-Hash (P2WSH) address type (`SegWit`).
+  P2wsh = 2,
+
+  /// Pay-to-PubKey-Hash (P2PKH) address type (Legacy address format).
+  P2pkh = 3,
+
+  /// Pay-to-Script-Hash (P2SH) address type (Legacy address format).
+  P2sh = 4,
+}
+
+export const AddWithdrawalRequestWithAddressTypeSchema: Structure<AddWithdrawalRequestWithAddressType> =
+  borsh.struct([
+    borsh.u8("discriminator"),
+    borsh.array(borsh.u8(), 32, "receiverAddress"),
+    borsh.u8("receiverAddressType"),
+    borsh.u64("currentSlot"),
+    borsh.u64("withdrawalAmount"),
+  ]);
+
 /* ========================================== */
