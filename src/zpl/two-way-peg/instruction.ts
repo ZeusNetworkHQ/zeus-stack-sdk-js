@@ -8,6 +8,8 @@ import BN from "bn.js";
 import TwoWayPegPdas from "./pda";
 import {
   AddWithdrawalRequestSchema,
+  AddWithdrawalRequestWithAddressTypeSchema,
+  BitcoinAddressType,
   CreateHotReserveBucketSchema,
   ReactivateHotReserveBucketSchema,
 } from "./types";
@@ -140,6 +142,85 @@ class TwoWayPegInstructions {
       {
         discriminator: 131,
         receiverAddress: Uint8Array.from(receiverBitcoinAddress),
+        currentSlot,
+        withdrawalAmount: amount,
+      },
+      instructionData
+    );
+
+    const twoWayPegProgramCPIIdentity = this.pdas.deriveCpiIdentityAddress();
+
+    const configurationPda = this.pdas.deriveConfigurationAddress();
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: solanaPubkey, isSigner: true, isWritable: true },
+        {
+          pubkey: twoWayPegProgramCPIIdentity,
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: configurationPda, isSigner: false, isWritable: false },
+        { pubkey: reserveSettingPda, isSigner: false, isWritable: false },
+        { pubkey: vaultSettingPda, isSigner: false, isWritable: false },
+        { pubkey: withdrawalRequestPda, isSigner: false, isWritable: true },
+        { pubkey: interactionPda, isSigner: false, isWritable: true },
+        { pubkey: positionPda, isSigner: false, isWritable: true },
+        {
+          pubkey: layerFeeCollectorPda,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: liquidityManagementConfigurationPda,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: liquidityManagementProgramId,
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data: instructionData,
+    });
+
+    return ix;
+  }
+
+  buildAddWithdrawalRequestWithAddressTypeIx(
+    amount: BN,
+    currentSlot: BN,
+    receiverBitcoinAddress: Buffer,
+    receiverAddressType: BitcoinAddressType,
+    solanaPubkey: PublicKey,
+    layerFeeCollectorPda: PublicKey,
+    reserveSettingPda: PublicKey,
+    liquidityManagementProgramId: PublicKey,
+    liquidityManagementConfigurationPda: PublicKey,
+    vaultSettingPda: PublicKey,
+    positionPda: PublicKey
+  ) {
+    const withdrawalRequestPda = this.pdas.deriveWithdrawalRequestAddress(
+      receiverBitcoinAddress,
+      currentSlot
+    );
+
+    const interactionPda = this.pdas.deriveInteraction(
+      receiverBitcoinAddress,
+      currentSlot
+    );
+
+    const instructionData = Buffer.alloc(
+      AddWithdrawalRequestWithAddressTypeSchema.span
+    );
+    AddWithdrawalRequestWithAddressTypeSchema.encode(
+      {
+        discriminator: 131,
+        receiverAddress: Uint8Array.from(receiverBitcoinAddress),
+        receiverAddressType,
         currentSlot,
         withdrawalAmount: amount,
       },
