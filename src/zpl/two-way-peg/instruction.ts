@@ -218,7 +218,7 @@ class TwoWayPegInstructions {
     );
     AddWithdrawalRequestWithAddressTypeSchema.encode(
       {
-        discriminator: 131,
+        discriminator: 133,
         receiverAddress: Uint8Array.from(receiverBitcoinAddress),
         receiverAddressType,
         currentSlot,
