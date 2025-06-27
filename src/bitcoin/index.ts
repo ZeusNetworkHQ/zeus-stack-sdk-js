@@ -1,4 +1,5 @@
 import ecc from "@bitcoinerlab/secp256k1";
+import { PublicKey } from "@solana/web3.js";
 import {
   initEccLib,
   Network,
@@ -24,17 +25,17 @@ const DUST_AMOUNT = 546;
 /**
  * Calculate the hot reserve bucket address based on the cold reserve address's internal key and the user's unlocking script.
  * * the key_path_spend_public_key and script_path_spend_public_key must be tweaked public keys.
- * @param {Buffer} key_path_spend_public_key - cold reserve address's internal key (must be tweaked public key)
- * @param {Buffer} script_path_spend_public_key - user's unlocking script (must be tweaked public key)
+ * @param {Buffer} keyPathSpendPublic_key - cold reserve address's internal key (must be tweaked public key)
+ * @param {Buffer} scriptPathSpendPublic_key - user's unlocking script (must be tweaked public key)
  * @param {number} lockTime - the lock time of the hot reserve address
  * @param {bitcoin.Network} network - the network to use
  * @return - the hot reserve address and the script
  */
 export function deriveHotReserveAddress(
   // tweaked pubkey that could directly spend the UTXO, usually the address of zeus node operator
-  key_path_spend_public_key: Buffer,
+  keyPathSpendPublic_key: Buffer,
   // user's unlocking script
-  script_path_spend_public_key: Buffer,
+  scriptPathSpendPublic_key: Buffer,
   lockTime: number,
   network: Network
 ): {
@@ -46,12 +47,12 @@ export function deriveHotReserveAddress(
 } {
   // bitcoin csv encoding sample
   // * ref: https://github.com/bitcoinjs/bitcoinjs-lib/blob/151173f05e26a9af7c98d8d1e3f90e97185955f1/test/integration/csv.spec.ts#L61
-  const targetScript = `${toHex(script.number.encode(lockTime))} OP_CHECKSEQUENCEVERIFY OP_DROP ${toXOnly(script_path_spend_public_key).toString("hex")} OP_CHECKSIG`;
+  const targetScript = `${toHex(script.number.encode(lockTime))} OP_CHECKSEQUENCEVERIFY OP_DROP ${toXOnly(scriptPathSpendPublic_key).toString("hex")} OP_CHECKSIG`;
 
   const tap = script.fromASM(targetScript);
 
   const script_p2tr = payments.p2tr({
-    internalPubkey: toXOnly(key_path_spend_public_key),
+    internalPubkey: toXOnly(keyPathSpendPublic_key),
     scriptTree: {
       output: tap,
     },
@@ -78,19 +79,65 @@ const isSpendable = (utxo: UTXO, satoshisPerVBytes: number): boolean => {
   );
 };
 
+export function deriveEntityDerivedReserveAddress(
+  assetOwner: PublicKey,
+  // tweaked pubkey that could directly spend the UTXO, usually the address of zeus node operator
+  keyPathSpendPublicKey: Buffer,
+  scriptPathSpendPublicKey: Buffer,
+  lockTime: number,
+  network: Network
+): {
+  address: string;
+  hash: Buffer | undefined;
+  output: Buffer | undefined;
+  pubkey: Buffer | undefined;
+} {
+  const opRetAsm = `OP_RETURN ${assetOwner.toBuffer().toString("hex")}`;
+  const opRetLeaf = script.fromASM(opRetAsm);
+
+  // bitcoin csv encoding sample
+  // * ref: https://github.com/bitcoinjs/bitcoinjs-lib/blob/151173f05e26a9af7c98d8d1e3f90e97185955f1/test/integration/csv.spec.ts#L61
+  const csvAsm = `${toHex(script.number.encode(lockTime))} OP_CHECKSEQUENCEVERIFY OP_DROP ${toXOnly(scriptPathSpendPublicKey).toString("hex")} OP_CHECKSIG`;
+  const csvLeaf = script.fromASM(csvAsm);
+
+  const script_p2tr = payments.p2tr({
+    internalPubkey: toXOnly(keyPathSpendPublicKey),
+    scriptTree: [
+      {
+        output: opRetLeaf,
+      },
+      {
+        output: csvLeaf,
+      },
+    ],
+    network,
+  });
+
+  if (script_p2tr.address === undefined) {
+    throw new Error("Failed to calculate the address");
+  }
+
+  return {
+    address: script_p2tr.address,
+    hash: script_p2tr.hash,
+    output: script_p2tr.output,
+    pubkey: script_p2tr.pubkey,
+  };
+}
+
 /**
  *
  * @param utxos available utxos
- * @param hotReserveAddress hot reserve address in p2tr format
+ * @param reserveAddress reserve address in p2tr format
  * @param amount amount to deposit (satoshis)
  * @param userXOnlyPubKey userXOnlyPubKey
  * @param feeRate fee rate in satoshis per vbyte
  * @param network network
  * @returns
  */
-export const buildDepositToHotReserveTx = (
+export const buildDepositTransaction = (
   utxos: UTXO[],
-  hotReserveAddress: string,
+  reserveAddress: string,
   amount: number,
   userXOnlyPubKey: Buffer,
   feeRate: number,
@@ -178,7 +225,7 @@ export const buildDepositToHotReserveTx = (
   }
 
   psbt.addOutput({
-    address: hotReserveAddress,
+    address: reserveAddress,
     value: amount,
   });
 
