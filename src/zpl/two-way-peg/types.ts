@@ -242,4 +242,11 @@ export const AddWithdrawalRequestWithAddressTypeSchema: Structure<AddWithdrawalR
     borsh.u64("withdrawalAmount"),
   ]);
 
+export interface CreateEntityDerivedReserveAddress {
+  discriminator: number;
+}
+
+export const CreateEntityDerivedReserveAddressSchema: Structure<CreateEntityDerivedReserveAddress> =
+  borsh.struct([borsh.u8("discriminator")]);
+
 /* ========================================== */

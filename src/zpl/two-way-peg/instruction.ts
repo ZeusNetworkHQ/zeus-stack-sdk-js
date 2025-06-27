@@ -10,6 +10,7 @@ import {
   AddWithdrawalRequestSchema,
   AddWithdrawalRequestWithAddressTypeSchema,
   BitcoinAddressType,
+  CreateEntityDerivedReserveAddressSchema,
   CreateHotReserveBucketSchema,
   ReactivateHotReserveBucketSchema,
 } from "./types";
@@ -261,6 +262,55 @@ class TwoWayPegInstructions {
           isWritable: false,
         },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data: instructionData,
+    });
+
+    return ix;
+  }
+
+  buildCreateEntityDerivedReserveAddressIx(
+    assetOwner: PublicKey,
+    reserveSetting: PublicKey,
+    guardianCertificate: PublicKey,
+    layerFeeCollector: PublicKey,
+    entityDerivedReserve: PublicKey,
+    addressType: BitcoinAddressType
+  ) {
+    const instructionData = Buffer.alloc(
+      CreateEntityDerivedReserveAddressSchema.span
+    );
+    CreateEntityDerivedReserveAddressSchema.encode(
+      {
+        discriminator: 150,
+      },
+      instructionData
+    );
+
+    const configurationPda = this.pdas.deriveConfigurationAddress();
+
+    const entityDerivedReserveAddress =
+      this.pdas.deriveEntityDerivedReserveAddress(
+        assetOwner,
+        entityDerivedReserve,
+        addressType
+      );
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: assetOwner, isSigner: true, isWritable: true },
+        { pubkey: configurationPda, isSigner: false, isWritable: false },
+        { pubkey: reserveSetting, isSigner: false, isWritable: false },
+        { pubkey: guardianCertificate, isSigner: false, isWritable: false },
+        { pubkey: entityDerivedReserve, isSigner: false, isWritable: false },
+        {
+          pubkey: entityDerivedReserveAddress,
+          isSigner: false,
+          isWritable: true,
+        },
+        { pubkey: layerFeeCollector, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: true },
       ],
       programId: this.programId,
       data: instructionData,
