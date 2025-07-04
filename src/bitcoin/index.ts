@@ -9,6 +9,7 @@ import {
   script,
 } from "bitcoinjs-lib";
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371";
+import { Taptree } from "bitcoinjs-lib/src/types";
 import { toHex } from "uint8array-tools";
 
 import { UTXO } from "./types";
@@ -79,12 +80,70 @@ const isSpendable = (utxo: UTXO, satoshisPerVBytes: number): boolean => {
   );
 };
 
+// Build tap tree following the same logic as zpl build_tap_tree
+function buildTapTree(taps: { output: Buffer }[]): Taptree {
+  switch (taps.length) {
+    case 1:
+      return taps[0];
+    case 2:
+      return [taps[0], taps[1]];
+    case 3:
+      return [[taps[0], taps[1]], taps[2]];
+    case 4:
+      return [
+        [taps[0], taps[1]],
+        [taps[2], taps[3]],
+      ];
+    case 5:
+      return [
+        [
+          [taps[0], taps[1]],
+          [taps[2], taps[3]],
+        ],
+        taps[4],
+      ];
+    case 6:
+      return [
+        [
+          [taps[0], taps[1]],
+          [taps[2], taps[3]],
+        ],
+        [taps[4], taps[5]],
+      ];
+    case 7:
+      return [
+        [
+          [taps[0], taps[1]],
+          [taps[2], taps[3]],
+        ],
+        [[taps[4], taps[5]], taps[6]],
+      ];
+    case 8:
+      return [
+        [
+          [taps[0], taps[1]],
+          [taps[2], taps[3]],
+        ],
+        [
+          [taps[4], taps[5]],
+          [taps[6], taps[7]],
+        ],
+      ];
+    default:
+      throw new Error(
+        `Too many recovery keys. Maximum 8 allowed, got ${taps.length}`
+      );
+  }
+}
+
 export function deriveEntityDerivedReserveAddress(
   assetOwner: PublicKey,
   // tweaked pubkey that could directly spend the UTXO, usually the address of zeus node operator
   keyPathSpendPublicKey: Buffer,
-  scriptPathSpendPublicKey: Buffer,
-  lockTime: number,
+  recoveryParameters: {
+    scriptPathSpendPublicKey: Buffer;
+    lockTime: number;
+  }[],
   network: Network
 ): {
   address: string;
@@ -92,24 +151,27 @@ export function deriveEntityDerivedReserveAddress(
   output: Buffer | undefined;
   pubkey: Buffer | undefined;
 } {
+  if (recoveryParameters.length === 0) {
+    throw new Error("Recovery parameters cannot be empty");
+  }
+
   const opRetAsm = `OP_RETURN ${assetOwner.toBuffer().toString("hex")}`;
   const opRetLeaf = script.fromASM(opRetAsm);
 
   // bitcoin csv encoding sample
   // * ref: https://github.com/bitcoinjs/bitcoinjs-lib/blob/151173f05e26a9af7c98d8d1e3f90e97185955f1/test/integration/csv.spec.ts#L61
-  const csvAsm = `${toHex(script.number.encode(lockTime))} OP_CHECKSEQUENCEVERIFY OP_DROP ${toXOnly(scriptPathSpendPublicKey).toString("hex")} OP_CHECKSIG`;
-  const csvLeaf = script.fromASM(csvAsm);
+  const csvLeaves = recoveryParameters.map((param) => {
+    const csvAsm = `${toHex(script.number.encode(param.lockTime))} OP_CHECKSEQUENCEVERIFY OP_DROP ${toXOnly(param.scriptPathSpendPublicKey).toString("hex")} OP_CHECKSIG`;
+    return { output: script.fromASM(csvAsm) };
+  });
+
+  const allTaps = [{ output: opRetLeaf }, ...csvLeaves];
+
+  const scriptTree = buildTapTree(allTaps);
 
   const script_p2tr = payments.p2tr({
     internalPubkey: toXOnly(keyPathSpendPublicKey),
-    scriptTree: [
-      {
-        output: opRetLeaf,
-      },
-      {
-        output: csvLeaf,
-      },
-    ],
+    scriptTree,
     network,
   });
 
