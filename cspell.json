@@ -23,7 +23,8 @@
     "psbt",
     "xonly",
     "unreleasable",
-    "p2wpkh"
+    "p2wpkh",
+    "taptree"
   ],
   // flagWords - list of words to be always considered incorrect
   // This is useful for offensive words and common spelling errors.

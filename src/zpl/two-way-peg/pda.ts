@@ -1,14 +1,16 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
+import { BitcoinAddressType } from "./types";
+
 class TwoWayPegPdas {
   constructor(private programId: PublicKey) {}
 
   deriveConfigurationAddress(): PublicKey {
-    const [configurationAddress] = PublicKey.findProgramAddressSync(
+    const configurationAddress = PublicKey.findProgramAddressSync(
       [Buffer.from("configuration")],
       this.programId
-    );
+    )[0];
     return configurationAddress;
   }
 
@@ -27,6 +29,23 @@ class TwoWayPegPdas {
       this.programId
     )[0];
     return bucketPda;
+  }
+
+  deriveEntityDerivedReserveAddress(
+    assetOwner: PublicKey,
+    entityDerivedReserve: PublicKey,
+    addressType: BitcoinAddressType
+  ): PublicKey {
+    const pda = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("entity-derived-reserve-address"),
+        assetOwner.toBuffer(),
+        entityDerivedReserve.toBuffer(),
+        Buffer.from(Uint8Array.of(addressType)),
+      ],
+      this.programId
+    )[0];
+    return pda;
   }
 
   deriveWithdrawalRequestAddress(
@@ -55,7 +74,6 @@ class TwoWayPegPdas {
       [Buffer.from("interaction"), seed1, seed2.toArrayLike(Buffer, "le", 4)],
       this.programId
     )[0];
-
     return interactionPda;
   }
 }
