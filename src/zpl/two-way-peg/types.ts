@@ -3,6 +3,23 @@ import { Structure } from "@solana/buffer-layout";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
+export enum BitcoinAddressType {
+  /// Pay-to-Taproot (P2TR) address type (`SegWit` version 1).
+  P2tr = 0,
+
+  /// Pay-to-Witness-PubKey-Hash (P2WPKH) address type (`SegWit`).
+  P2wpkh = 1,
+
+  /// Pay-to-Witness-Script-Hash (P2WSH) address type (`SegWit`).
+  P2wsh = 2,
+
+  /// Pay-to-PubKey-Hash (P2PKH) address type (Legacy address format).
+  P2pkh = 3,
+
+  /// Pay-to-Script-Hash (P2SH) address type (Legacy address format).
+  P2sh = 4,
+}
+
 /* ==========================================
  * Accounts Schema for Deserialization
  * ========================================== */
@@ -50,10 +67,10 @@ export interface ColdReserveBucket {
   createdAt: BN;
   // Guardian X-Only PublicKey
   keyPathSpendPublicKey: Uint8Array;
-  recoveryParameters: ColdReserveRecoveryParameter[];
+  recoveryParameters: ReserveRecoveryParameter[];
 }
 
-export interface ColdReserveRecoveryParameter {
+export interface ReserveRecoveryParameter {
   scriptPathSpendPublicKey: Uint8Array;
   lockTime: BN;
 }
@@ -111,6 +128,60 @@ export const HotReserveBucketSchema: Structure<HotReserveBucket> = borsh.struct(
     borsh.i64("expiredAt"),
   ]
 );
+
+export interface EntityDerivedReserve {
+  publicKey: PublicKey;
+  reserveSetting: PublicKey;
+  owner: PublicKey;
+  createdAt: BN;
+  keyPathSpendPublicKey: Uint8Array;
+  recoveryParameters: ReserveRecoveryParameter[];
+}
+
+export const EntityDerivedReserveSchema: Structure<EntityDerivedReserve> =
+  borsh.struct([
+    borsh.publicKey("reserveSetting"),
+    borsh.publicKey("owner"),
+    borsh.i64("createdAt"),
+    borsh.array(borsh.u8(), 32, "keyPathSpendPublicKey"),
+    borsh.vec(
+      borsh.struct([
+        borsh.array(borsh.u8(), 32, "scriptPathSpendPublicKey"),
+        borsh.i64("lockTime"),
+      ]),
+      "recoveryParameters"
+    ),
+  ]);
+
+export enum EntityDerivedReserveAddressStatus {
+  Activated = 0,
+  Deactivated = 1,
+}
+
+export interface EntityDerivedReserveAddress {
+  publicKey: PublicKey;
+  assetOwner: PublicKey;
+  entityDerivedReserve: PublicKey;
+  status: number;
+  addressBytes: Uint8Array;
+  addressType: number;
+  createdAt: BN;
+  expiredAt: BN;
+  reserveUser: PublicKey | null;
+}
+
+export const EntityDerivedReserveAddressSchema: Structure<EntityDerivedReserveAddress> =
+  borsh.struct([
+    borsh.publicKey("assetOwner"),
+    borsh.publicKey("entityDerivedReserve"),
+    borsh.u8("status"),
+    borsh.array(borsh.u8(), 32, "addressBytes"),
+    borsh.u8("addressType"),
+    borsh.i64("createdAt"),
+    borsh.i64("expiredAt"),
+    borsh.option(borsh.publicKey(), "reserveUser"),
+  ]);
+
 /* ========================================== */
 
 /* ==========================================
@@ -162,23 +233,6 @@ export interface AddWithdrawalRequestWithAddressType {
   withdrawalAmount: BN;
 }
 
-export enum BitcoinAddressType {
-  /// Pay-to-Taproot (P2TR) address type (`SegWit` version 1).
-  P2tr = 0,
-
-  /// Pay-to-Witness-PubKey-Hash (P2WPKH) address type (`SegWit`).
-  P2wpkh = 1,
-
-  /// Pay-to-Witness-Script-Hash (P2WSH) address type (`SegWit`).
-  P2wsh = 2,
-
-  /// Pay-to-PubKey-Hash (P2PKH) address type (Legacy address format).
-  P2pkh = 3,
-
-  /// Pay-to-Script-Hash (P2SH) address type (Legacy address format).
-  P2sh = 4,
-}
-
 export const AddWithdrawalRequestWithAddressTypeSchema: Structure<AddWithdrawalRequestWithAddressType> =
   borsh.struct([
     borsh.u8("discriminator"),
@@ -187,5 +241,12 @@ export const AddWithdrawalRequestWithAddressTypeSchema: Structure<AddWithdrawalR
     borsh.u64("currentSlot"),
     borsh.u64("withdrawalAmount"),
   ]);
+
+export interface CreateEntityDerivedReserveAddress {
+  discriminator: number;
+}
+
+export const CreateEntityDerivedReserveAddressSchema: Structure<CreateEntityDerivedReserveAddress> =
+  borsh.struct([borsh.u8("discriminator")]);
 
 /* ========================================== */

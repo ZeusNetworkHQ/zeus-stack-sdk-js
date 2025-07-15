@@ -5,6 +5,10 @@ import { createDiscriminatorFilter, getDeserializedAccounts } from "../utils";
 import {
   ColdReserveBucket,
   ColdReserveBucketSchema,
+  EntityDerivedReserve,
+  EntityDerivedReserveAddress,
+  EntityDerivedReserveAddressSchema,
+  EntityDerivedReserveSchema,
   HotReserveBucket,
   HotReserveBucketSchema,
   TwoWayPegConfiguration,
@@ -89,6 +93,44 @@ class TwoWayPegAccounts {
     );
 
     return hotReserveBuckets;
+  }
+
+  async getEntityDerivedReserves(): Promise<EntityDerivedReserve[]> {
+    const filters = [
+      createDiscriminatorFilter("two-way-peg:entity-derived-reserve"),
+    ];
+
+    const entityDerivedReserves = await getDeserializedAccounts(
+      this.connection,
+      this.programId,
+      filters,
+      EntityDerivedReserveSchema
+    );
+
+    return entityDerivedReserves;
+  }
+
+  async getEntityDerivedReserveAddressesBySolanaPubkey(
+    solanaPubkey: PublicKey
+  ): Promise<EntityDerivedReserveAddress[]> {
+    const filters = [
+      createDiscriminatorFilter("zpl:entity-derived-reserve-address"),
+      {
+        memcmp: {
+          offset: 8,
+          bytes: solanaPubkey.toBase58(),
+        },
+      },
+    ];
+
+    const entityDerivedReserveAddresses = await getDeserializedAccounts(
+      this.connection,
+      this.programId,
+      filters,
+      EntityDerivedReserveAddressSchema
+    );
+
+    return entityDerivedReserveAddresses;
   }
 }
 
