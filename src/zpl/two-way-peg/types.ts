@@ -249,4 +249,11 @@ export interface CreateEntityDerivedReserveAddress {
 export const CreateEntityDerivedReserveAddressSchema: Structure<CreateEntityDerivedReserveAddress> =
   borsh.struct([borsh.u8("discriminator")]);
 
+export interface MigrateHotReserveBucketToEntityDerivedReserveAddress {
+  discriminator: number;
+}
+
+export const MigrateHotReserveBucketToEntityDerivedReserveAddressSchema: Structure<MigrateHotReserveBucketToEntityDerivedReserveAddress> =
+  borsh.struct([borsh.u8("discriminator")]);
+
 /* ========================================== */

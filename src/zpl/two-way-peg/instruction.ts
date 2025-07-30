@@ -12,6 +12,7 @@ import {
   BitcoinAddressType,
   CreateEntityDerivedReserveAddressSchema,
   CreateHotReserveBucketSchema,
+  MigrateHotReserveBucketToEntityDerivedReserveAddressSchema,
   ReactivateHotReserveBucketSchema,
 } from "./types";
 
@@ -311,6 +312,51 @@ class TwoWayPegInstructions {
         },
         { pubkey: layerFeeCollector, isSigner: false, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: true },
+      ],
+      programId: this.programId,
+      data: instructionData,
+    });
+
+    return ix;
+  }
+
+  buildMigrateHotReserveBucketToEntityDerivedReserveAddressIx(
+    bucketOwner: PublicKey,
+    hotReserveBucketPda: PublicKey,
+    entityDerivedReservePda: PublicKey
+  ) {
+    const instructionData = Buffer.alloc(
+      MigrateHotReserveBucketToEntityDerivedReserveAddressSchema.span
+    );
+    MigrateHotReserveBucketToEntityDerivedReserveAddressSchema.encode(
+      {
+        discriminator: 95,
+      },
+      instructionData
+    );
+
+    const entityDerivedReserveAddress =
+      this.pdas.deriveEntityDerivedReserveAddress(
+        bucketOwner,
+        entityDerivedReservePda,
+        BitcoinAddressType.P2tr
+      );
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: bucketOwner, isSigner: true, isWritable: true },
+        { pubkey: hotReserveBucketPda, isSigner: false, isWritable: true },
+        {
+          pubkey: entityDerivedReservePda,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: entityDerivedReserveAddress,
+          isSigner: false,
+          isWritable: true,
+        },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
       programId: this.programId,
       data: instructionData,
