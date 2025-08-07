@@ -1,7 +1,7 @@
 {
-  "name": "@zeus-network/zpl-sdk",
-  "version": "0.11.6",
-  "description": "",
+  "name": "@zeus-network/zeus-stack-sdk",
+  "version": "0.11.7",
+  "description": "SDK for Zeus Network's Bitcoin-to-zBTC cross-chain protocol on Solana",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -49,8 +49,18 @@
       "prettier --write"
     ]
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "bitcoin",
+    "solana",
+    "zbtc",
+    "zeus-network",
+    "cross-chain",
+    "blockchain",
+    "cryptocurrency",
+    "typescript",
+    "sdk"
+  ],
+  "author": "Zeus Network",
   "license": "MIT",
   "packageManager": "pnpm@10.8.1",
   "devDependencies": {
