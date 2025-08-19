@@ -14,6 +14,9 @@ export interface Position {
   frozenAmount: BN;
   createdAt: BN;
   updatedAt: BN;
+  withdrawalWindowStartedAt: BN;
+  accumulatedWithdrawalAmount: BN;
+  hasUnlimitedWithdrawalQuota: boolean;
 }
 
 export const PositionSchema: Structure<Position> = borsh.struct([
@@ -23,6 +26,9 @@ export const PositionSchema: Structure<Position> = borsh.struct([
   borsh.u64("frozenAmount"),
   borsh.i64("createdAt"),
   borsh.i64("updatedAt"),
+  borsh.i64("withdrawalWindowStartedAt"),
+  borsh.u64("accumulatedWithdrawalAmount"),
+  borsh.bool("hasUnlimitedWithdrawalQuota"),
 ]);
 /* ========================================== */
 
