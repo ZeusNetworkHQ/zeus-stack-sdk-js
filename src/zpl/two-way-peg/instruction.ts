@@ -163,7 +163,7 @@ class TwoWayPegInstructions {
           isWritable: false,
         },
         { pubkey: configurationPda, isSigner: false, isWritable: false },
-        { pubkey: reserveSettingPda, isSigner: false, isWritable: false },
+        { pubkey: reserveSettingPda, isSigner: false, isWritable: true },
         { pubkey: vaultSettingPda, isSigner: false, isWritable: false },
         { pubkey: withdrawalRequestPda, isSigner: false, isWritable: true },
         { pubkey: interactionPda, isSigner: false, isWritable: true },
