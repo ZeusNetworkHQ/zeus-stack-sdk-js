@@ -49,6 +49,15 @@ class LiquidityManagementPdas {
       this.programId
     )[0];
   }
+
+  deriveVaultUserAddress(vaultUserCertificate: PublicKey): PublicKey {
+    const [vaultUserAddress] = PublicKey.findProgramAddressSync(
+      [Buffer.from("vault-user"), vaultUserCertificate.toBuffer()],
+      this.programId
+    );
+
+    return vaultUserAddress;
+  }
 }
 
 export default LiquidityManagementPdas;

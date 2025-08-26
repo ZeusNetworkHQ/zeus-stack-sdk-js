@@ -264,6 +264,23 @@ export const AddWithdrawalRequestWithAddressTypeSchema: Structure<AddWithdrawalR
     borsh.u64("withdrawalAmount"),
   ]);
 
+export interface AddWithdrawalRequestWithVaultUserCertificate {
+  discriminator: number;
+  receiverAddress: Uint8Array;
+  receiverAddressType: number;
+  currentSlot: BN;
+  withdrawalAmount: BN;
+}
+
+export const AddWithdrawalRequestWithVaultUserCertificateSchema: Structure<AddWithdrawalRequestWithVaultUserCertificate> =
+  borsh.struct([
+    borsh.u8("discriminator"),
+    borsh.array(borsh.u8(), 32, "receiverAddress"),
+    borsh.u8("receiverAddressType"),
+    borsh.u64("currentSlot"),
+    borsh.u64("withdrawalAmount"),
+  ]);
+
 export interface CreateEntityDerivedReserveAddress {
   discriminator: number;
 }
