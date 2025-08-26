@@ -2,6 +2,7 @@ export {
   extractErrorCodeFromSendTransactionError,
   extractProgramIdFromSendTransactionError,
   getDeserializedAccounts,
+  LayerCaClient,
   LiquidityManagementClient,
   LiquidityManagementError,
   TwoWayPegClient,
