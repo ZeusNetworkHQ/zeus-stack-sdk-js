@@ -13,6 +13,8 @@ import {
   HotReserveBucketSchema,
   TwoWayPegConfiguration,
   TwoWayPegConfigurationSchema,
+  UserSetting,
+  UserSettingSchema,
 } from "./types";
 
 class TwoWayPegAccounts {
@@ -131,6 +133,27 @@ class TwoWayPegAccounts {
     );
 
     return entityDerivedReserveAddresses;
+  }
+
+  async getUserSetting(solanaPubkey: PublicKey): Promise<UserSetting[]> {
+    const filters = [
+      createDiscriminatorFilter("two-way-peg:user-setting"),
+      {
+        memcmp: {
+          offset: 8,
+          bytes: solanaPubkey.toBase58(),
+        },
+      },
+    ];
+
+    const UserSetting = await getDeserializedAccounts(
+      this.connection,
+      this.programId,
+      filters,
+      UserSettingSchema
+    );
+
+    return UserSetting;
   }
 }
 

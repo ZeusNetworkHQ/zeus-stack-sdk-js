@@ -24,7 +24,7 @@ class LiquidityManagementInstructions {
     solanaPubkey: PublicKey,
     assetMint: PublicKey,
     reserveSettingPda: PublicKey,
-    receiverAta: PublicKey
+    receiver: PublicKey
   ) {
     const vaultSettingPda =
       this.pdas.deriveVaultSettingAddress(reserveSettingPda);
@@ -35,6 +35,12 @@ class LiquidityManagementInstructions {
     const vaultAta = getAssociatedTokenAddressSync(
       assetMint,
       splTokenVaultAuthorityPda,
+      true
+    );
+
+    const receiverAta = getAssociatedTokenAddressSync(
+      assetMint,
+      receiver,
       true
     );
 
@@ -59,6 +65,7 @@ class LiquidityManagementInstructions {
           isSigner: true,
           isWritable: true,
         },
+        { pubkey: receiver, isSigner: false, isWritable: false },
         { pubkey: receiverAta, isSigner: false, isWritable: true },
         { pubkey: positionPda, isSigner: false, isWritable: true },
         { pubkey: vaultSettingPda, isSigner: false, isWritable: false },
