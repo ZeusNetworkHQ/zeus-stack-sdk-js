@@ -38,6 +38,8 @@ export interface TwoWayPegConfiguration {
   bucketReactivationFeeAmount: BN;
   withdrawalFeeAmount: BN;
   minerFeeRate: number;
+  maxUserWithdrawalQuota: BN;
+  userWithdrawalWindow: BN;
 }
 
 export const TwoWayPegConfigurationSchema: Structure<TwoWayPegConfiguration> =
@@ -55,6 +57,8 @@ export const TwoWayPegConfigurationSchema: Structure<TwoWayPegConfiguration> =
     borsh.u64("bucketReactivationFeeAmount"),
     borsh.u64("withdrawalFeeAmount"),
     borsh.u32("minerFeeRate"),
+    borsh.u64("maxUserWithdrawalQuota"),
+    borsh.i64("userWithdrawalWindow"),
   ]);
 
 export interface ColdReserveBucket {
@@ -181,6 +185,24 @@ export const EntityDerivedReserveAddressSchema: Structure<EntityDerivedReserveAd
     borsh.i64("expiredAt"),
     borsh.option(borsh.publicKey(), "reserveUser"),
   ]);
+
+export interface UserSetting {
+  owner: PublicKey;
+  createdAt: BN;
+  updatedAt: BN;
+  withdrawalWindowStartedAt: BN;
+  accumulatedWithdrawalAmount: BN;
+  hasUnlimitedWithdrawalQuota: boolean;
+}
+
+export const UserSettingSchema: Structure<UserSetting> = borsh.struct([
+  borsh.publicKey("owner"),
+  borsh.i64("createdAt"),
+  borsh.i64("updatedAt"),
+  borsh.i64("withdrawalWindowStartedAt"),
+  borsh.u64("accumulatedWithdrawalAmount"),
+  borsh.bool("hasUnlimitedWithdrawalQuota"),
+]);
 
 /* ========================================== */
 

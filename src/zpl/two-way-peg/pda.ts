@@ -76,6 +76,14 @@ class TwoWayPegPdas {
     )[0];
     return interactionPda;
   }
+
+  deriveUserSetting(owner: PublicKey): PublicKey {
+    const userSettingPda = PublicKey.findProgramAddressSync(
+      [Buffer.from("user-setting"), owner.toBuffer()],
+      this.programId
+    )[0];
+    return userSettingPda;
+  }
 }
 
 export default TwoWayPegPdas;
