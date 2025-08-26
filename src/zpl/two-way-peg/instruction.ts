@@ -9,6 +9,7 @@ import TwoWayPegPdas from "./pda";
 import {
   AddWithdrawalRequestSchema,
   AddWithdrawalRequestWithAddressTypeSchema,
+  AddWithdrawalRequestWithVaultUserCertificateSchema,
   BitcoinAddressType,
   CreateEntityDerivedReserveAddressSchema,
   CreateHotReserveBucketSchema,
@@ -247,6 +248,94 @@ class TwoWayPegInstructions {
         { pubkey: reserveSettingPda, isSigner: false, isWritable: true },
         { pubkey: vaultSettingPda, isSigner: false, isWritable: false },
         { pubkey: userSettingPda, isSigner: false, isWritable: true },
+        { pubkey: withdrawalRequestPda, isSigner: false, isWritable: true },
+        { pubkey: interactionPda, isSigner: false, isWritable: true },
+        { pubkey: positionPda, isSigner: false, isWritable: true },
+        {
+          pubkey: layerFeeCollectorPda,
+          isSigner: false,
+          isWritable: true,
+        },
+        {
+          pubkey: liquidityManagementConfigurationPda,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: liquidityManagementProgramId,
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: this.programId,
+      data: instructionData,
+    });
+
+    return ix;
+  }
+
+  buildAddWithdrawalRequestWithVaultUserCertificateIx(
+    amount: BN,
+    currentSlot: BN,
+    receiverBitcoinAddress: Buffer,
+    receiverAddressType: BitcoinAddressType,
+    solanaPubkey: PublicKey,
+    layerFeeCollectorPda: PublicKey,
+    reserveSettingPda: PublicKey,
+    liquidityManagementProgramId: PublicKey,
+    liquidityManagementConfigurationPda: PublicKey,
+    vaultSettingPda: PublicKey,
+    positionPda: PublicKey,
+    vaultUserEntity: PublicKey,
+    vaultUserCertificatePda: PublicKey,
+    vaultUserPda: PublicKey
+  ) {
+    const withdrawalRequestPda = this.pdas.deriveWithdrawalRequestAddress(
+      receiverBitcoinAddress,
+      currentSlot
+    );
+
+    const interactionPda = this.pdas.deriveInteraction(
+      receiverBitcoinAddress,
+      currentSlot
+    );
+
+    const userSettingPda = this.pdas.deriveUserSetting(solanaPubkey);
+
+    const instructionData = Buffer.alloc(
+      AddWithdrawalRequestWithVaultUserCertificateSchema.span
+    );
+    AddWithdrawalRequestWithVaultUserCertificateSchema.encode(
+      {
+        discriminator: 135,
+        receiverAddress: Uint8Array.from(receiverBitcoinAddress),
+        receiverAddressType,
+        currentSlot,
+        withdrawalAmount: amount,
+      },
+      instructionData
+    );
+
+    const twoWayPegProgramCPIIdentity = this.pdas.deriveCpiIdentityAddress();
+
+    const configurationPda = this.pdas.deriveConfigurationAddress();
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: solanaPubkey, isSigner: true, isWritable: true },
+        { pubkey: vaultUserEntity, isSigner: true, isWritable: true },
+        {
+          pubkey: twoWayPegProgramCPIIdentity,
+          isSigner: false,
+          isWritable: false,
+        },
+        { pubkey: configurationPda, isSigner: false, isWritable: false },
+        { pubkey: reserveSettingPda, isSigner: false, isWritable: true },
+        { pubkey: vaultSettingPda, isSigner: false, isWritable: false },
+        { pubkey: userSettingPda, isSigner: false, isWritable: true },
+        { pubkey: vaultUserPda, isSigner: false, isWritable: false },
+        { pubkey: vaultUserCertificatePda, isSigner: false, isWritable: false },
         { pubkey: withdrawalRequestPda, isSigner: false, isWritable: true },
         { pubkey: interactionPda, isSigner: false, isWritable: true },
         { pubkey: positionPda, isSigner: false, isWritable: true },
